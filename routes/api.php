@@ -31,3 +31,4 @@ Route::get('provinces', 'ShopController@provinces');
 Route::post('shipping', 'ShopController@shipping');
 Route::get('couriers', 'ShopController@couriers');
 Route::post('services', 'ShopController@services');
+Route::post('payment', 'ShopController@payment');
