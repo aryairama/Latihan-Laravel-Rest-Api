@@ -13,11 +13,18 @@ use App\Http\Resources\CitiesCollection;
 use App\Http\Resources\ProvincesCollection;
 use App\Order;
 use Exception;
+use Veritrans_Config;
+use Veritrans_Snap;
 
 class ShopController extends Controller
 {
     public function __construct()
     {
+        Veritrans_Config::$serverKey = config('services.midtrans.serverKey');
+        Veritrans_Config::$clientKey = config('services.midtrans.clientKey');
+        Veritrans_Config::$isProduction = config('services.midtrans.isProduction');
+        Veritrans_Config::$isSanitized = config('services.midtrans.isSanitized');
+        Veritrans_Config::$is3ds = config('services.midtrans.is3ds');
         $this->middleware('auth:api')->only(['shipping','services','couriers','payment']);
     }
     /**
@@ -381,10 +388,21 @@ class ShopController extends Controller
                             DB::commit();
                             $status = "success";
                             $message = "Transaction success";
+                            //payment gateway
+                            $transaction_data= [
+                                'transaction_details' => [
+                                    'order_id' => $order->invoice_number,
+                                    'gross_amount' => $totalBill
+                                ]
+                            ];
+                            $payment_link = Veritrans_Snap::createTransaction($transaction_data)->redirect_url;
+                            // $data = [
+                            //     'order_id' => $order->id,
+                            //     'total_bill' => $totalBill,
+                            //     'invoice_number' => $order->invoice_number
+                            // ];
                             $data = [
-                                'order_id' => $order->id,
-                                'total_bill' => $totalBill,
-                                'invoice_number' => $order->invoice_number
+                                'payment_link' => $payment_link
                             ];
                         } else {
                             $message = 'There are '.$error.'error';
