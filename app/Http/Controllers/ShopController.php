@@ -25,7 +25,7 @@ class ShopController extends Controller
         Veritrans_Config::$isProduction = config('services.midtrans.isProduction');
         Veritrans_Config::$isSanitized = config('services.midtrans.isSanitized');
         Veritrans_Config::$is3ds = config('services.midtrans.is3ds');
-        $this->middleware('auth:api')->only(['shipping','services','couriers','payment']);
+        $this->middleware('auth:api')->only(['shipping','services','couriers','payment','myOrder']);
     }
     /**
      * Display a listing of the resource.
@@ -417,6 +417,27 @@ class ShopController extends Controller
             $message = "User not found";
         }
 
+        return response()->json([
+            'status' => $status,
+            'message' => $message,
+            'data' => $data
+        ], 200);
+    }
+
+    public function myOrder(Request $request)
+    {
+        $user =  Auth::user();
+        $status = "error";
+        $message = "";
+        $data = [];
+        if ($user) {
+            $orders = Order::where('user_id', $user->id)->orderBy('id', 'DESC')->get();
+            $status = "success";
+            $message = "Data my order";
+            $data =  $orders;
+        } else {
+            $message = "User not found";
+        }
         return response()->json([
             'status' => $status,
             'message' => $message,
